@@ -5,9 +5,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
-    "gitpush": "git add . && git commit -m 'refactored code (commited using npm script)' && git push"
+    "gitpush": "git add . && git commit -m 'refactored code (commited using npm script)' && git push",
+    "test": "node --test"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +16,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "lodash": "^4.17.21",
     "mongoose": "^8.4.3",
     "morgan": "^1.10.0"
   },
