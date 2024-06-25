@@ -1,5 +1,7 @@
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 const initialBlogs = [
   {
@@ -52,18 +54,51 @@ const initialBlogs = [
   }
 ]
 
-const initialUsers = [ 
-  {
+
+const resetUsers = async () => {
+  await User.deleteMany({})
+  const passwordHash1 = await bcrypt.hash("samplepassword", 10)
+  const passwordHash2 = await bcrypt.hash("fakepassword", 10)
+  const user1 = new User({
     username: "sample",
     name: "Sample User",
-    password: "samplepassword"
-  }, 
-  {
+    blogs: [],
+    passwordHash: passwordHash1
+  })
+  const user2 = new User({
     username: "fake",
     name: "Fake User",
-    password: "fakepassword"
+    passwordHash: passwordHash2,
+    blogs: []
+  })
+  
+  await user1.save()
+  await user2.save()
+}
+
+const resetBlogs = async () => { 
+  await Blog.deleteMany({})
+  const user = await User.findOne({ username: 'sample' })
+  
+  const blogObjects = initialBlogs.map(blog => new Blog({...blog, user: user._id}))
+  const promiseArray = blogObjects.map(async (blog) => {
+    await blog.save()
+    user.blogs = user.blogs.concat(blog._id)
+  })
+  await user.save()
+  await Promise.all(promiseArray)
+}
+
+const generateUserToken = (user) => {
+  const userForToken = {
+    username: user.username,
+    id: user._id,
   }
-]
+
+  const token = jwt.sign(userForToken, process.env.SECRET)
+  return token
+}
+
 
 const nonExistingId = async () => {
   const blog = new Blog({
@@ -83,11 +118,18 @@ const usersInDb = async () => {
   return users.map(user => user.toJSON())
 }
 
-const blogsInDb = async() => { 
+const blogsInDb = async () => { 
   const blogs = await Blog.find({})
   return blogs.map(blog => blog.toJSON())
+
+}
+
+const sampleBlog = {
+  title: "This is a sample blog!",
+  author: "Sample Author",
+  url: "http://sample.com/",
+  likes: 4
 }
 
 
-
-module.exports = { usersInDb, initialBlogs, blogsInDb, nonExistingId, initialUsers }
+module.exports = { usersInDb, initialBlogs, blogsInDb, nonExistingId, resetUsers, resetBlogs, generateUserToken, sampleBlog}
