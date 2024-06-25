@@ -85,7 +85,7 @@ describe('POST /api/json tests', () => {
     assert.strictEqual(response.body.length, initialBlogs.length)
   })
   
-  test('quirky if url property is missing from added blog, backend replies with status code 400', async () => {
+  test('if url property is missing from added blog, backend replies with status code 400', async () => {
     const initialBlogs = await api.get('/api/blogs')
 
     const user = await User.findOne({}) 
