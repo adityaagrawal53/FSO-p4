@@ -26,10 +26,14 @@ blogsRouter.post('/', async (request, response) => {
   const user = request.user
   const blog = new Blog({
     ...request.body,
+    user: user
   })
 
   if (!blog.likes) {blog.likes = 0}
   if (!blog.title || !blog.url) { return response.status(400).end()  }
+  if ( !user ) { 
+    return response.status(401).json({ error: 'token missing or invalid' }) }
+
   
   const result = await blog.save()
   user.blogs = user.blogs.concat(result._id)
