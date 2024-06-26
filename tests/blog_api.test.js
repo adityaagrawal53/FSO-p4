@@ -100,11 +100,40 @@ describe('POST /api/json tests', () => {
       const response = await api.get('/api/notes')
     assert.strictEqual(response.body.length, initialBlogs.length)
   })
+
+  test('if blog is added without a user token, backend replies with status code 401', async () => {
+    const initialBlogs = await api.get('/api/blogs')
+
+    await api
+      .post('/api/blogs')
+      .send({...helper.sampleBlog})
+      .expect(401)
+  
+      const response = await api.get('/api/notes')
+    assert.strictEqual(response.body.length, initialBlogs.length)
+  })
+
+  test('if blog is added with an invalid user token, backend replies with status code 401', async () => {
+    const initialBlogs = await api.get('/api/blogs')
+
+    const user = await User.findOne({username: "fake"}) 
+    const token = helper.generateUserToken(user)
+    await User.deleteOne({username: "fake"})
+
+    await api
+      .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
+      .send({...helper.sampleBlog})
+      .expect(401)
+  
+      const response = await api.get('/api/notes')
+    assert.strictEqual(response.body.length, initialBlogs.length)
+  })
 })
 
 describe('DELETE /api/json/:id tests', () => {
 
-  test('a blog can be deleted from the backend', async () => { 
+  test('a blog can be deleted from the backend with proper user auth', async () => { 
     const initialBlogs = await api.get('/api/blogs')
     const blogToDelete = initialBlogs.body[0]
 
@@ -117,22 +146,46 @@ describe('DELETE /api/json/:id tests', () => {
     await api.get(`/api/blogs/${blogToDelete.id}`).expect(404)
     assert.strictEqual(laterBlogs.body.length, initialBlogs.body.length - 1)
   }) 
+  test('a blog cannot be deleted by another user', async () => { 
+    const initialBlogs = await api.get('/api/blogs')
+    const blogToDelete = initialBlogs.body[0]
+
+    const user = await User.findOne({username: "fake"}) 
+    const token = helper.generateUserToken(user)
+
+    await api.delete(`/api/blogs/${blogToDelete.id}`).set('Authorization', `Bearer ${token}`).expect(401)
+    const laterBlogs = await api.get('/api/blogs')
+    
+    await api.get(`/api/blogs/${blogToDelete.id}`).expect(200)
+    assert.strictEqual(laterBlogs.body.length, initialBlogs.body.length)
+  }) 
+
+  test('a blog cannot be deleted by an invalid user', async () => { 
+    const initialBlogs = await api.get('/api/blogs')
+    const blogToDelete = initialBlogs.body[0]
+
+    const user = await User.findOne({username: "fake"}) 
+    const token = helper.generateUserToken(user)
+    await User.deleteOne({username: "fake"})
+
+    await api.delete(`/api/blogs/${blogToDelete.id}`).set('Authorization', `Bearer ${token}`).expect(401)
+    const laterBlogs = await api.get('/api/blogs')
+    
+    await api.get(`/api/blogs/${blogToDelete.id}`).expect(200)
+    assert.strictEqual(laterBlogs.body.length, initialBlogs.body.length)
+  }) 
+
 })
 
 describe("PUT /api/blogs/:id", () => { 
-  test('a blog can be updated', async () => { 
+  test('a blog can be updated with proper user auth', async () => { 
     const initialBlogs = await api.get('/api/blogs')
     const blogToUpdate = initialBlogs.body[0]
 
     const user = await User.findOne({username: "sample"}) 
     const token = helper.generateUserToken(user)
 
-    const updatedBlog = {
-      title: `${blogToUpdate.title} (updated)`,
-      author: `${blogToUpdate.author} (updated)`,
-      url: `${blogToUpdate.url}.updated.com`,
-      likes: 15
-    }
+    const updatedBlog = helper.sampleBlog
 
     await api
       .put(`/api/blogs/${blogToUpdate.id}`)
@@ -146,6 +199,70 @@ describe("PUT /api/blogs/:id", () => {
     assert.strictEqual(recievedBlog.author, updatedBlog.author)
     assert.strictEqual(recievedBlog.url, updatedBlog.url)
     assert.strictEqual(recievedBlog.likes, updatedBlog.likes)
+  })
+
+  test('a non-existing user cannot update a blog', async () => { 
+    const initialBlogs = await api.get('/api/blogs')
+    const blogToUpdate = initialBlogs.body[0]
+
+    const user = await User.findOne({username: "fake"}) 
+    const token = helper.generateUserToken(user)
+    await User.deleteOne({username: "fake"})
+
+    const updatedBlog = helper.sampleBlog
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedBlog).set('Authorization', `Bearer ${token}`)
+      .expect(401)
+
+    const response = await api.get(`/api/blogs/${blogToUpdate.id}`)
+    const recievedBlog = response.body
+
+    assert.strictEqual(recievedBlog.title, blogToUpdate.title)
+    assert.strictEqual(recievedBlog.author, blogToUpdate.author)
+    assert.strictEqual(recievedBlog.url, blogToUpdate.url)
+    assert.strictEqual(recievedBlog.likes, blogToUpdate.likes)
+  })
+
+  test('a user cannot update a blog they did not create', async () => { 
+    const initialBlogs = await api.get('/api/blogs')
+    const blogToUpdate = initialBlogs.body[0]
+
+    const user = await User.findOne({username: "fake"}) 
+    const token = helper.generateUserToken(user)
+
+    const updatedBlog = helper.sampleBlog
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedBlog).set('Authorization', `Bearer ${token}`)
+      .expect(401)
+
+    const response = await api.get(`/api/blogs/${blogToUpdate.id}`)
+    const recievedBlog = response.body
+
+    assert.strictEqual(recievedBlog.title, blogToUpdate.title)
+    assert.strictEqual(recievedBlog.author, blogToUpdate.author)
+    assert.strictEqual(recievedBlog.url, blogToUpdate.url)
+    assert.strictEqual(recievedBlog.likes, blogToUpdate.likes)
+  })
+
+  test('a user cannot update a blog that does not exist', async () => { 
+    const initialBlogs = await api.get('/api/blogs')
+    const blogToUpdate = initialBlogs.body[0]
+
+    const user = await User.findOne({username: "sample"}) 
+    const token = helper.generateUserToken(user)
+
+    const updatedBlog = helper.sampleBlog
+
+    await api
+      .put(`/api/blogs/${helper.nonExistingId}`)
+      .send(updatedBlog).set('Authorization', `Bearer ${token}`)
+      .expect(404)
+
+    await api.get(`/api/blogs/${helper.nonExistingId}`).expect(404)
   })
 })
 
