@@ -34,7 +34,7 @@ describe('GET /api/users tests', () => {
 })
 
 describe('POST /api/users tests', () => {
-  test('a valid user can be added using the post method', async () => {
+  test('usesr can be added with username, name and password', async () => {
     const initialUsers = await api.get('/api/users')
 
     await api
@@ -45,7 +45,7 @@ describe('POST /api/users tests', () => {
     const response = await api.get('/api/users')
     assert(response.body.length === initialUsers.body.length + 1)
   })
-  test('adding user without a field gives status code 400', async () => {
+  test('adding users without one of the mentioned fields gives status code 400', async () => {
     const initialUsers = await api.get('/api/users')
 
     await api
