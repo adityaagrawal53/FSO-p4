@@ -7,7 +7,7 @@
     "dev": "cross-env NODE_ENV=development nodemon index.js",
     "lint": "eslint .",
     "gitpush": "git add . && git commit -m 'refactored code (commited using npm script)' && git push",
-    "test": "cross-env NODE_ENV=test node --test"
+    "test": "cross-env NODE_ENV=test node --test --test-concurrency=1"
   },
   "author": "",
   "license": "ISC",

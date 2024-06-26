@@ -131,5 +131,9 @@ const sampleBlog = {
   likes: 4
 }
 
-
-module.exports = { usersInDb, initialBlogs, blogsInDb, nonExistingId, resetUsers, resetBlogs, generateUserToken, sampleBlog}
+const sampleUser = {
+    username: "sampleuser",
+    name: "Sample User",
+    password: "samplepassword"
+}
+module.exports = { usersInDb, initialBlogs, blogsInDb, nonExistingId, resetUsers, resetBlogs, generateUserToken, sampleBlog, sampleUser}

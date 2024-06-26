@@ -22,7 +22,7 @@ beforeEach(async () => {
 // RUN EACH DESCRIBE BLOCK INDIVIDUALLY BY DOING 
 // $ npm test -- --test-name-pattern="describe block name here" 
 
-describe('GET /api/json tests', () => { 
+describe('GET /api/blogs tests', () => { 
   test('blogs are returned as json', async () => {
     await api
       .get('/api/blogs')
@@ -41,7 +41,7 @@ describe('GET /api/json tests', () => {
   })
 })
 
-describe('POST /api/json tests', () => {
+describe('POST /api/blogs tests', () => {
   test('a valid blog can be added using the post method and a user auth token', async () => {
     const initialBlogs = await api.get('/api/blogs')
 
@@ -131,7 +131,7 @@ describe('POST /api/json tests', () => {
   })
 })
 
-describe('DELETE /api/json/:id tests', () => {
+describe('DELETE /api/blogs/:id tests', () => {
 
   test('a blog can be deleted from the backend with proper user auth', async () => { 
     const initialBlogs = await api.get('/api/blogs')
