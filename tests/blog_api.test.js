@@ -146,7 +146,7 @@ describe('DELETE /api/blogs/:id tests', () => {
     await api.get(`/api/blogs/${blogToDelete.id}`).expect(404)
     assert.strictEqual(laterBlogs.body.length, initialBlogs.body.length - 1)
   }) 
-  test('a blog cannot be deleted by another user', async () => { 
+  test('a blog cannot be deleted by another user (returns 401 error)', async () => { 
     const initialBlogs = await api.get('/api/blogs')
     const blogToDelete = initialBlogs.body[0]
 
@@ -160,7 +160,7 @@ describe('DELETE /api/blogs/:id tests', () => {
     assert.strictEqual(laterBlogs.body.length, initialBlogs.body.length)
   }) 
 
-  test('a blog cannot be deleted by an invalid user', async () => { 
+  test('a blog cannot be deleted by an invalid user (returns 401 error)', async () => { 
     const initialBlogs = await api.get('/api/blogs')
     const blogToDelete = initialBlogs.body[0]
 
@@ -201,7 +201,7 @@ describe("PUT /api/blogs/:id", () => {
     assert.strictEqual(recievedBlog.likes, updatedBlog.likes)
   })
 
-  test('a non-existing user cannot update a blog', async () => { 
+  test('a non-existing user cannot update a blog (returns 401 error)', async () => { 
     const initialBlogs = await api.get('/api/blogs')
     const blogToUpdate = initialBlogs.body[0]
 
@@ -225,7 +225,7 @@ describe("PUT /api/blogs/:id", () => {
     assert.strictEqual(recievedBlog.likes, blogToUpdate.likes)
   })
 
-  test('a user cannot update a blog they did not create', async () => { 
+  test('a user cannot update a blog they did not create (returns 401 error)', async () => { 
     const initialBlogs = await api.get('/api/blogs')
     const blogToUpdate = initialBlogs.body[0]
 
@@ -248,7 +248,7 @@ describe("PUT /api/blogs/:id", () => {
     assert.strictEqual(recievedBlog.likes, blogToUpdate.likes)
   })
 
-  test('a user cannot update a blog that does not exist', async () => { 
+  test('a user cannot update a blog that does not exist (returns 404 error)', async () => { 
     const initialBlogs = await api.get('/api/blogs')
     const blogToUpdate = initialBlogs.body[0]
 
